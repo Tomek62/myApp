@@ -1,109 +1,183 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import { Camera, CameraType, CameraView } from "expo-camera";
+import LoaderScreen from "@/components/LoaderScreen";
+import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
+import {
+  BottomSheetModal,
+  BottomSheetView,
+  BottomSheetModalProvider,
+} from "@gorhom/bottom-sheet";
+import { ThemedText } from "@/components/ThemedText";
+import { Svg, Path } from "react-native-svg";
+import BlurBackground from "@/components/ui/BlurBackground";
+import ResultModal from "@/components/ResultModal";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+export default function CameraScreen() {
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [type, setType] = useState("back");
+  const [result, setResult] = useState<any>(null);
+  const cameraRef = useRef<Camera | null>(null);
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-export default function TabTwoScreen() {
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
+  }, []);
+
+  const takePictureAndAnalyze = async () => {
+    if (!cameraRef.current) return;
+
+    setScanning(true);
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.3,
+      });
+
+      const response = await fetch("http://172.20.10.2:5000/images/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: `${photo.base64}` }),
+      });
+
+      const result = await response.json();
+      setResult(result);
+      console.log(result);
+      bottomSheetModalRef.current?.present();
+      setTimeout(() => {
+        bottomSheetModalRef.current?.snapToIndex(0);
+      }, 100);
+    } catch (error) {
+      alert("Erreur lors de l'analyse.");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("BottomSheet index:", index);
+  }, []);
+
+  if (hasPermission === null) return <Text>Demande de permission...</Text>;
+  if (hasPermission === false) return <Text>Accès à la caméra refusé</Text>;
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <View style={styles.container}>
+          {scanning ? (
+            <LoaderScreen />
+          ) : (
+            <CameraView ref={cameraRef} style={styles.camera}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={takePictureAndAnalyze}
+                disabled={scanning}
+              >
+                <Text style={styles.text}>Scanner</Text>
+              </TouchableOpacity>
+            </CameraView>
+          )}
+          <ResultModal
+            bottomSheetModalRef={bottomSheetModalRef}
+            result={result}
+            handleSheetChanges={handleSheetChanges}
+          />
+        </View>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: { flex: 1 },
+  camera: { flex: 1, justifyContent: "flex-end" },
+  button: {
+    position: "absolute",
+    bottom: 50,
+    alignSelf: "center",
+    backgroundColor: "#FFCF82",
+    padding: 15,
+    borderRadius: 10,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  text: { color: "white", fontWeight: "bold" },
+  modalBackground: {
+    backgroundColor: "white",
+    borderRadius: 20,
   },
+  modalView: {
+    flex: 1,
+    alignItems: "center",    
+  },
+  closeButton: {
+    backgroundColor: "#FFCF82",
+    flexDirection: "row",
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addButton: {
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 12,
+    marginRight: 5,
+  },
+  modalText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontFamily: "FredokaSemiBold",
+    marginBottom: 16,
+  },
+  circle: {
+    width: 150,
+    height: 150,
+    borderRadius: '50%',
+    backgroundColor: "#FFCF82",
+    position: "relative",
+  },
+  headerCard: {
+    marginVertical: 32,
+    paddingBottom: 16,
+    alignItems: "center",
+    width: "100%",
+    
+  },
+  image:{
+    width: 100,
+    height: 160,
+    position: "absolute",
+    top: 0, // Centre verticalement
+    left: "50%", // Centre horizontalement
+    transform: [{ translateX: -50 }],
+    
+    zIndex: 1,
+  }
 });
