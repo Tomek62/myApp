@@ -9,7 +9,10 @@ import {
 } from "react-native";
 import { Camera, CameraType, CameraView } from "expo-camera";
 import LoaderScreen from "@/components/LoaderScreen";
-import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  ScrollView,
+} from "react-native-gesture-handler";
 import {
   BottomSheetModal,
   BottomSheetView,
@@ -118,7 +121,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     flex: 1,
-    alignItems: "center",    
+    alignItems: "center",
   },
   closeButton: {
     backgroundColor: "#FFCF82",
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
   circle: {
     width: 150,
     height: 150,
-    borderRadius: '50%',
+    borderRadius: "50%",
     backgroundColor: "#FFCF82",
     position: "relative",
   },
@@ -168,16 +171,15 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     alignItems: "center",
     width: "100%",
-    
   },
-  image:{
+  image: {
     width: 100,
     height: 160,
     position: "absolute",
     top: 0, // Centre verticalement
     left: "50%", // Centre horizontalement
     transform: [{ translateX: -50 }],
-    
+
     zIndex: 1,
-  }
+  },
 });
