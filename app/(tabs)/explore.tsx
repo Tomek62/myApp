@@ -3,25 +3,19 @@ import {
   View,
   TouchableOpacity,
   Text,
-  Image,
   StyleSheet,
-  ActivityIndicator,
 } from "react-native";
-import { Camera, CameraType, CameraView } from "expo-camera";
+import { Camera, CameraView } from "expo-camera";
 import LoaderScreen from "@/components/LoaderScreen";
 import {
   GestureHandlerRootView,
-  ScrollView,
 } from "react-native-gesture-handler";
 import {
   BottomSheetModal,
-  BottomSheetView,
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
-import { ThemedText } from "@/components/ThemedText";
-import { Svg, Path } from "react-native-svg";
-import BlurBackground from "@/components/ui/BlurBackground";
 import ResultModal from "@/components/ResultModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CameraScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -30,7 +24,7 @@ export default function CameraScreen() {
   const [result, setResult] = useState<any>(null);
   const cameraRef = useRef<Camera | null>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
+  const { user } = useAuth();
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -51,7 +45,10 @@ export default function CameraScreen() {
       const response = await fetch("http://172.20.10.2:5000/images/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: `${photo.base64}` }),
+        body: JSON.stringify({
+          imageUrl: `${photo.base64}`,
+          user_id: user.user_id,
+        }),
       });
 
       const result = await response.json();
