@@ -11,6 +11,7 @@ import axios from "axios";
 interface AuthContextType {
   isAuthenticated: boolean;
   token: string | null;
+  user: any | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (pseudo: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -25,6 +26,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any | null>(null);
 
   // Charger le token stocké au démarrage de l'application
   useEffect(() => {
@@ -34,6 +36,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setToken(storedToken);
         setIsAuthenticated(true);
       }
+      const storedUser = await AsyncStorage.getItem("user");
+if (storedUser) {
+  setUser(JSON.parse(storedUser));
+}
     };
     loadToken();
   }, []);
@@ -55,6 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await AsyncStorage.setItem("token", response.data.token);
       await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
       setToken(response.data.token);
+      setUser(response.data.user);
       setIsAuthenticated(true);
       console.log("Réponse de l'API:", response.data);
     } catch (error: any) {
@@ -84,6 +91,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await AsyncStorage.setItem("token", response.data.token);
       console.log("Token reçu :", response.data.token);
       console.log("User reçu :", response.data.user);
+      setUser(response.data.user);
 
       await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
       setToken(response.data.token);
@@ -102,7 +110,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, token, login, signup, logout }}
+      value={{ isAuthenticated, token, login, signup, logout ,user}}
     >
       {children}
     </AuthContext.Provider>

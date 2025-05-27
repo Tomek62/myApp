@@ -1,42 +1,22 @@
-import { Image, StyleSheet, TouchableOpacity, Text ,View} from "react-native";
+import { Image, StyleSheet, TouchableOpacity, Text, View } from "react-native";
 
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
 import { capitalizeFirstLetter, capitalizeAll } from "@/utils/utils";
 import { SubSection } from "@/components/SubSection";
-import BlurBackground from "@/components/ui/BlurBackground";
 import LastFind from "@/components/LastFind";
 import { CollectionCard } from "@/components/CollectionCard";
 import Svg, { Path } from "react-native-svg";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import { useLastItem } from "@/hooks/useLastItem";
 
 export default function HomeScreen() {
-  interface UserData {
-    pseudo: string;
-    email: string;
-  }
-
-  const [userDataBis, setUserData] = useState<UserData>({
-    pseudo: "",
-    email: "",
-  });
   const router = useRouter();
-
-  useEffect(() => {
-    const loadUserData = async () => {
-      const userData = await AsyncStorage.getItem("user");
-      if (userData) {
-        const parsedData = JSON.parse(userData);
-        setUserData({ pseudo: parsedData.pseudo, email: parsedData.email });
-        console.log("UserData :", parsedData);
-      }
-    };
-    loadUserData();
-  }, []);
+  const { user } = useAuth();
+  const { lastItem, error } = useLastItem(user?.user_id);
 
   return (
     <ParallaxScrollView
@@ -49,48 +29,50 @@ export default function HomeScreen() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <View style={{flexDirection: "row", alignItems: "center"}}>
-        <ThemedText type="subtitle">
-          HELLO,{" "}
-          <ThemedText type="subtitle" style={{ fontWeight: "bold" }}>
-            {capitalizeAll(userDataBis.pseudo)}
-          </ThemedText>{" "}
-        </ThemedText>
-        <HelloWave />
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <ThemedText type="subtitle">
+            HELLO,{" "}
+            <ThemedText type="subtitle" style={{ fontWeight: "bold" }}>
+              {capitalizeAll(user.pseudo)}
+            </ThemedText>{" "}
+          </ThemedText>
+          <HelloWave />
         </View>
-        <TouchableOpacity onPress={async () => {
-          router.push('/(tabs)/favorite');
-        }
-        }>
-        <Svg width="22" height="22" fill="none" viewBox="0 0 22 22">
-          <Path
-            stroke="#000"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M17 19a6 6 0 0 0-6-6m0 0a6 6 0 0 0-6 6m6-6a4 4 0 1 0 0-8 4 4 0 0 0 0 8m10-2c0 5.523-4.477 10-10 10S1 16.523 1 11 5.477 1 11 1s10 4.477 10 10"
-          ></Path>
-        </Svg>
+        <TouchableOpacity
+          onPress={async () => {
+            router.push("/(tabs)/profile");
+          }}
+        >
+          <Svg width="22" height="22" fill="none" viewBox="0 0 22 22">
+            <Path
+              stroke="#000"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M17 19a6 6 0 0 0-6-6m0 0a6 6 0 0 0-6 6m6-6a4 4 0 1 0 0-8 4 4 0 0 0 0 8m10-2c0 5.523-4.477 10-10 10S1 16.523 1 11 5.477 1 11 1s10 4.477 10 10"
+            ></Path>
+          </Svg>
         </TouchableOpacity>
       </ThemedView>
       <SubSection title="Dernière Trouvaille">
         <LastFind
           imageSource={require("@/assets/images/paix-dieu.png")}
-          origin="France"
-          aromas="Fruits rouges, épices"
+          name={lastItem?.item_name || "Aucune trouvaille"}
+          origin={lastItem?.provenance || "Inconnue"}
+          aromas={lastItem?.aromes?.join(", ") || "Aucun"}
           rating="4.5/5"
         />
       </SubSection>
       <SubSection title="Mes Collections">
-        <CollectionCard type="beer" progress={50}  />
-        <CollectionCard type="wine" progress={75}  />
+        <CollectionCard type="beer" progress={50} />
+        <CollectionCard type="wine" progress={75} />
         <TouchableOpacity style={styles.moreButton}>
           <Text style={styles.moreText}>Voir toutes mes collections &gt;</Text>
         </TouchableOpacity>
       </SubSection>
       <SubSection title="Dernières Recherches">
-        <CollectionCard type="beer" progress={50}  />
-        <CollectionCard type="wine" progress={75}  />
+        <CollectionCard type="beer" progress={50} />
+        <CollectionCard type="wine" progress={75} />
       </SubSection>
     </ParallaxScrollView>
   );
