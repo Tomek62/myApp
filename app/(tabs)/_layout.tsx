@@ -1,15 +1,13 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Easing, Platform, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { TransitionSpecs } from '@react-navigation/bottom-tabs';
-import { useColorScheme } from "@/hooks/useColorScheme";
 import Svg, { Path } from "react-native-svg";
 import { useRouter } from "expo-router";
-
 import GlowingCircle from "@/components/ui/GlowingCircle";
+
+
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const router = useRouter();
   return (
     <Tabs
@@ -95,13 +93,13 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="profile"
+        name="favorite"
         options={{
           title: "",
           tabBarIcon: ({ color }) => (
             <TouchableOpacity
               style={{ padding: 8 }}
-              onPress={() => router.push("/profile")}
+              onPress={() => router.push("/favorite")}
             >
               <Svg width="32" height="32" fill="none" viewBox="0 0 33 32">
                 <Path
@@ -113,7 +111,7 @@ export default function TabLayout() {
           ),
           tabBarIconStyle: {
             marginTop: 20,
-          }
+          },
         }}
       />
       <Tabs.Screen
@@ -123,11 +121,10 @@ export default function TabLayout() {
           headerShown: false,
           headerTransparent: true,
           href: null,
-          
         }}
       />
       <Tabs.Screen
-        name="favorite"
+        name="profile"
         options={{
           title: "",
           headerShown: false,
