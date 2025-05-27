@@ -3,25 +3,32 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 
 interface WineCardProps {
   imageSource: any;
+  name: string;
   origin: string;
   aromas: string;
   rating: string;
   onPress?: () => void;
 }
 
-const LastFind: React.FC<WineCardProps> = ({ imageSource, origin, aromas, rating, onPress }) => {
+const LastFind: React.FC<WineCardProps> = ({
+  imageSource,
+  name,
+  origin,
+  aromas,
+  rating,
+  onPress,
+}) => {
   return (
     <View style={styles.card}>
-
       <View style={styles.imageContainer}>
         <Image source={imageSource} style={styles.image} resizeMode="contain" />
       </View>
 
-
       <View style={styles.infoContainer}>
+        <InfoRow emoji="ℹ️" label="Nom" value={name} />
         <InfoRow emoji="📍" label="Provenance" value={origin} />
         <InfoRow emoji="🍷" label="Arômes" value={aromas} />
-        <InfoRow emoji="⭐" label="Note" value={rating} />
+        {/* <InfoRow emoji="⭐" label="Note" value={rating} /> */}
 
         <TouchableOpacity onPress={onPress} style={styles.moreButton}>
           <Text style={styles.moreText}>Voir Plus &gt;</Text>
@@ -32,7 +39,15 @@ const LastFind: React.FC<WineCardProps> = ({ imageSource, origin, aromas, rating
 };
 
 // Composant pour afficher une ligne d'information avec une icône
-const InfoRow = ({ emoji, label, value }: { emoji: string; label: string; value: string }) => (
+const InfoRow = ({
+  emoji,
+  label,
+  value,
+}: {
+  emoji: string;
+  label: string;
+  value: string;
+}) => (
   <View style={styles.infoRow}>
     <Text style={styles.infoLabel}>
       {emoji} <Text style={styles.boldText}>{label} :</Text>
